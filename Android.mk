@@ -277,7 +277,7 @@ include $(BUILD_SYSTEM)/base_rules.mk
 sepolicy_policy.conf := $(intermediates)/policy.conf
 $(sepolicy_policy.conf): PRIVATE_MLS_SENS := $(MLS_SENS)
 $(sepolicy_policy.conf): PRIVATE_MLS_CATS := $(MLS_CATS)
-$(sepolicy_policy.conf): PRIVATE_TARGET_BUILD_VARIANT := user
+$(sepolicy_policy.conf): PRIVATE_TARGET_BUILD_VARIANT := $(TARGET_BUILD_VARIANT)
 $(sepolicy_policy.conf): PRIVATE_TGT_ARCH := $(my_target_arch)
 $(sepolicy_policy.conf): PRIVATE_TGT_WITH_ASAN := $(with_asan)
 $(sepolicy_policy.conf): PRIVATE_ADDITIONAL_M4DEFS := $(LOCAL_ADDITIONAL_M4DEFS)
@@ -744,7 +744,7 @@ $(sepolicy.recovery.conf): $(call build_policy, $(sepolicy_build_files), \
 	$(transform-policy-to-conf)
 	$(hide) sed '/dontaudit/d' $@ > $@.dontaudit
 ifeq ($(SELINUX_IGNORE_NEVERALLOWS),true)
-	$(hide) sed -z 's/\n\s*neverallow[^;]*;/\n/g' $@ > $@.neverallow
+	$(hide) awk '/^ *neverallow/ { na=1; } /;$$/ { eob=1; } { if (na==0) { print; } if (eob==1) { na=0; } eob=0; }' $@ > $@.neverallow
 	$(hide) mv $@.neverallow $@
 endif
 
